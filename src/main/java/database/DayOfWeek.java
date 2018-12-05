@@ -1,3 +1,5 @@
+package database;
+
 public class DayOfWeek {
     public static final int MONDAY = 1;
     public static final int TUESDAY = 2;

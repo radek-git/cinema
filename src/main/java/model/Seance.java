@@ -1,7 +1,6 @@
 package model;
 
 import org.json.simple.JSONObject;
-import util.IdUtil;
 
 public class Seance {
 
@@ -12,16 +11,13 @@ public class Seance {
     private String startTime;
 
     public Seance(int seanceId, int movieId, int dayOfWeek, String room, String startTime) {
+        this(movieId, dayOfWeek, room, startTime);
+
         this.seanceId = seanceId;
-        this.movieId = movieId;
-        this.dayOfWeek = dayOfWeek;
-        this.room = room;
-        this.startTime = startTime;
     }
 
-    public Seance(int id, int dayOfWeek, String room, String startTime) {
-        this.seanceId = IdUtil.generateID(5);
-        this.movieId = id;
+    public Seance(int movieId, int dayOfWeek, String room, String startTime) {
+        this.movieId = movieId;
         this.dayOfWeek = dayOfWeek;
         this.room = room;
         this.startTime = startTime;
@@ -46,6 +42,23 @@ public class Seance {
                 (String)jsonObject.get("room"),
                 (String)jsonObject.get("startTime")
         );
+    }
+
+
+    public int getSeanceId() {
+        return seanceId;
+    }
+
+    public int getMovieId() {
+        return movieId;
+    }
+
+    public String getRoom() {
+        return room;
+    }
+
+    public String getStartTime() {
+        return startTime;
     }
 
     public int getDayOfWeek() {

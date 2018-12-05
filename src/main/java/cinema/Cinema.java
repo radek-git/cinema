@@ -4,9 +4,14 @@ import database.Database;
 import database.SQLErrorCode;
 import model.Employee;
 import model.Movie;
+import model.Seance;
 import model.User;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Cinema {
 
@@ -50,7 +55,38 @@ public class Cinema {
         database.addMovie(movie);
     }
 
+    public List<Seance> getSeancesFor(LocalDate date) {
+        try {
+            return database.getSeancesFor(date);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
+    public Map<Seance, Movie> getMovieDataForSeances(List<Seance> seances) {
+        Map<Seance, Movie> map = new HashMap<>();
+
+        seances.forEach(s -> {
+            try {
+                map.put(s, database.getMovie(s.getMovieId()));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+
+        return map;
+    }
+
+    public List<Movie> getMovieList() {
+        try {
+            return database.getMovies();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
 
     //todo kupno biletu bez logowania

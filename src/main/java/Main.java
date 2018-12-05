@@ -1,13 +1,9 @@
 import cinema.Cinema;
 import cinema.CinemaException;
-import model.Account;
-import model.Actor;
-import model.Director;
-import model.Movie;
+import model.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
@@ -222,37 +218,36 @@ public class Main {
         }
     }
 
-//    private static void handleAddNewSeance() {
-//        List<Movie> movieList = cinema.getMovieList();
-//
-//        int id = -1;   // id nigdy nie będzie ujemne a nie wywoła błędu
-//        while (!cinema.isIdCorrect(id, movieList)) {
-//            System.out.println("Wybierz film: ");
-//
-//            for (Movie m : movieList) {
-//                //System.out.println(m.getId()+" "+ m.getTitle()+" "+m.getDirector());
-//            }
-//
-//            id = sc.nextInt();
-//        }
-//
-//        int dayOfWeek = -1;
-//        while (dayOfWeek < DayOfWeek.MONDAY || dayOfWeek > DayOfWeek.SUNDAY) {
-//            System.out.println("Podaj dzień tygodnia: ");
-//            dayOfWeek = sc.nextInt();
-//        }
-//
-//        System.out.println("Podaj nr sali: ");
-//        String roomNr = sc.next();
-//
-//        System.out.println("Podaj godzinę rozpoczęcia: ");
-//        String startTime = sc.next();
-//
-//        cinema.addSeance(new Seance(id, dayOfWeek, roomNr, startTime));
-//
-//        System.out.println("Dodano seans");
-//
-//    }
+    private static void handleAddNewSeance() {
+        List<Movie> movieList = cinema.getMovieList();
+
+        Optional<Movie> optionalMovie = Optional.empty();
+        while (!optionalMovie.isPresent()) {
+            movieList.forEach(movie -> System.out.println(movie.getId() + " " + movie.getTitle()));
+
+            System.out.println("Wybierz film: ");
+            int movieId = sc.nextInt();
+
+            optionalMovie = movieList.stream().filter(movie -> movie.getId() == movieId).findFirst();
+        }
+
+        int dayOfWeek = -1;
+        while (dayOfWeek < database.DayOfWeek.MONDAY || dayOfWeek > database.DayOfWeek.SUNDAY) {
+            System.out.println("Podaj dzień tygodnia: ");
+            dayOfWeek = sc.nextInt();
+        }
+
+        System.out.println("Podaj nr sali: ");
+        String roomNr = sc.next();
+
+        System.out.println("Podaj godzinę rozpoczęcia: ");
+        String startTime = sc.next();
+
+        cinema.addSeance(new Seance(optionalMovie.get().getId(), dayOfWeek, roomNr, startTime));
+
+        System.out.println("Dodano seans");
+
+    }
 
     private static void handleAddNewMovie() {
         System.out.print("Podaj tytul: ");
@@ -368,20 +363,72 @@ public class Main {
     private static void handleCinemaSchedule() {
         System.out.print("Podaj dzien tygodnia (1-7): ");
 
-        showScheduleFor(sc.nextInt());
-    }
-
-    private static void showScheduleFor(int dayOfWeek) {
-
     }
 
 
     private static void buyTicket() {
+        System.out.print("Podaj dzien tygodnia (1-7): ");
+        int dayOfWeek = sc.nextInt();
+
+        List<Seance> seances = cinema.getSeancesFor(LocalDate.now());
+        Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
+
+        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDayOfWeek()));
+
+        Optional<Seance> optionalSeance = Optional.empty();
+        while (!optionalSeance.isPresent()) {
+            System.out.print("Wybierz id seansu: ");
+
+            int seanceId = sc.nextInt();
+            optionalSeance = seances.stream().filter(s -> s.getSeanceId() == seanceId).findFirst();
+        }
+
+
+
+
+//        Seance s;
+//        Movie m;
+//        for (Map.Entry<Seance, Movie> e : map.entrySet()) {
+//            s = e.getKey();
+//            m = e.getValue();
+//
+//            System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDayOfWeek());
+//        }
+
+        while (true) {
+            //wyswietl rodzaje biletow
+            // uzytkownik podaje jaki ordzaj wybiera
+            // sprawdzic czy ten rodzaj jest
+            // jesli tak to pytanie o ilosc
+            // dodajemy do klasy order te bilety
+
+            System.out.println("Czy chcesz kupic kolejny bilet? (t/n) ");
+            if (sc.next().charAt(0) == 'n') break;
+
+            //podsumowanie zamowienia
+        }
+
+
         handleCinemaSchedule();
 
-        System.out.print("Wybierz id filmu: ");
 
         chooseMovie(sc.nextInt());
+
+        System.out.print("wybierz rodzajbiletu ");
+
+        int numberOfNrmalTickets = sc.nextInt();
+
+        System.out.print("Podaj ilość biletów ulgowych: ");
+
+        int numberofStudentTickets = sc.nextInt();
+
+
+
+
+    }
+
+    private static void chooseMovie(int nextInt) {
+
     }
 
 

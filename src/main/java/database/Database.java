@@ -9,6 +9,8 @@ import org.json.simple.parser.ParseException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,7 @@ public class Database {
             String database = (String) jsonObject.get("database");
             databaseURL = "jdbc:mysql://" + ip + ":" + port + "/" + database;
 
-            user = (String) jsonObject.get("user");
+            user = (String) jsonObject.get("username");
             password = (String) jsonObject.get("password");
 
             con = DriverManager.getConnection(databaseURL, user, password);
@@ -417,7 +419,7 @@ public class Database {
                             rs.getString("SURNAME"))
                     );
                 } else {
-//                    m.setDirectors(directors);
+                    m.setDirectors(directors);
                     rs.previous();
                     break;
                 }
@@ -476,6 +478,114 @@ public class Database {
         }
 
         return movies;
+    }
+
+    public Movie getMovie(int id) throws SQLException {
+        Movie movie = null;
+
+        sql = "select * from movies where id_movie = ?";
+        ps = con.prepareStatement(sql);
+        ps.setInt(1, id);
+        rs = ps.executeQuery();
+
+        if (rs.next()) {
+            movie = new Movie(
+                    rs.getInt("ID_MOVIE"),
+                    rs.getString("TITLE"),
+                    rs.getString("DESCRIPTION"),
+                    rs.getInt("DURATION"));
+        }
+
+        sql = "SELECT m.ID_MOVIE, d.ID_DIRECTOR, d.NAME, d.SURNAME FROM directors as d, movie_directors as md" +
+                ", movies as m WHERE d.ID_DIRECTOR = md.ID_DIRECTOR AND md.ID_MOVIE = m.ID_MOVIE";
+        ps = con.prepareStatement(sql);
+        rs = ps.executeQuery();
+
+        List<Director> directors = new ArrayList<>();
+
+        while (rs.next()) {
+            if (movie.getId() == rs.getInt("ID_MOVIE")) {
+                directors.add(new Director(
+                        rs.getInt("ID_DIRECTOR"),
+                        rs.getString("NAME"),
+                        rs.getString("SURNAME"))
+                );
+            } else {
+                movie.setDirectors(directors);
+                rs.previous();
+                break;
+            }
+        }
+
+        movie.setDirectors(directors);
+
+        sql = "SELECT m.ID_MOVIE, a.ID_ACTOR, a.NAME, a.SURNAME FROM actors as a, movie_actors as ma" +
+                ", movies as m WHERE a.ID_ACTOR = ma.ID_ACTOR AND ma.ID_MOVIE = m.ID_MOVIE";
+        ps = con.prepareStatement(sql);
+        rs = ps.executeQuery();
+
+
+        List<Actor> actors = new ArrayList<>();
+
+        while (rs.next()) {
+            if (movie.getId() == rs.getInt("ID_MOVIE")) {
+                actors.add(new Actor(
+                        rs.getInt("ID_ACTOR"),
+                        rs.getString("NAME"),
+                        rs.getString("SURNAME"))
+                );
+            } else {
+                movie.setActors(actors);
+                rs.previous();
+                break;
+            }
+        }
+
+        movie.setActors(actors);
+
+
+        sql = "SELECT m.ID_MOVIE, g.NAME FROM genres as g" +
+                ", movies as m, movie_genres as mg WHERE g.ID_GENRE = mg.ID_GENRE AND mg.ID_MOVIE = m.ID_MOVIE";
+        ps = con.prepareStatement(sql);
+        rs = ps.executeQuery();
+
+        List<String> genres = new ArrayList<>();
+
+        while (rs.next()) {
+            if (movie.getId() == rs.getInt("ID_MOVIE")) {
+                genres.add( rs.getString("NAME"));
+            } else {
+                movie.setGenres(genres);
+                rs.previous();
+                break;
+            }
+        }
+
+        movie.setGenres(genres);
+
+        return movie;
+    }
+
+    public List<Seance> getSeancesFor(LocalDate date) throws SQLException {
+        List<Seance> seances = new ArrayList<>();
+
+        sql = "select * from seances where CAST(datetime as DATE) = ?";
+
+        ps = con.prepareStatement(sql);
+        ps.setString(1, date.toString());
+        rs = ps.executeQuery();
+
+        while (rs.next()) {
+            seances.add(new Seance(
+                    rs.getInt("ID_SEANCE"),
+                    rs.getInt("ID_MOVIE"),
+                    DayOfWeek.MONDAY.getValue(),
+                    "2a",
+                    rs.getString("DATETIME")
+            ));
+        }
+
+        return seances;
     }
 
 }
