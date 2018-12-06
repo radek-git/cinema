@@ -1,48 +1,48 @@
 package model;
 
-import org.json.simple.JSONObject;
+import java.time.LocalDateTime;
 
 public class Seance {
 
     private int seanceId;
     private int movieId;
-    private int dayOfWeek;
+    private LocalDateTime dateTime;
     private String room;
     private String startTime;
 
-    public Seance(int seanceId, int movieId, int dayOfWeek, String room, String startTime) {
-        this(movieId, dayOfWeek, room, startTime);
+    public Seance(int seanceId, int movieId, LocalDateTime dateTime, String room, String startTime) {
+        this(movieId, dateTime, room, startTime);
 
         this.seanceId = seanceId;
     }
 
-    public Seance(int movieId, int dayOfWeek, String room, String startTime) {
+    public Seance(int movieId, LocalDateTime dateTime, String room, String startTime) {
         this.movieId = movieId;
-        this.dayOfWeek = dayOfWeek;
+        this.dateTime = getDateTime();
         this.room = room;
         this.startTime = startTime;
     }
 
-     public JSONObject toJSON() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("seanceId", seanceId);
-        jsonObject.put("movieId", movieId);
-        jsonObject.put("room", room);
-        jsonObject.put("startTime", startTime);
-        jsonObject.put("tickets", 100);
-
-        return jsonObject;
-    }
-
-    public static Seance fromJSON(JSONObject jsonObject, int dayOfWeek) {
-        return new Seance(
-                ((Long) jsonObject.get("seanceId")).intValue(),
-                ((Long)jsonObject.get("movieId")).intValue(),
-                dayOfWeek,
-                (String)jsonObject.get("room"),
-                (String)jsonObject.get("startTime")
-        );
-    }
+//     public JSONObject toJSON() {
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("seanceId", seanceId);
+//        jsonObject.put("movieId", movieId);
+//        jsonObject.put("room", room);
+//        jsonObject.put("startTime", startTime);
+//        jsonObject.put("tickets", 100);
+//
+//        return jsonObject;
+//    }
+//
+//    public static Seance fromJSON(JSONObject jsonObject, int dayOfWeek) {
+//        return new Seance(
+//                ((Long) jsonObject.get("seanceId")).intValue(),
+//                ((Long)jsonObject.get("movieId")).intValue(),
+//                dayOfWeek,
+//                (String)jsonObject.get("room"),
+//                (String)jsonObject.get("startTime")
+//        );
+//    }
 
 
     public int getSeanceId() {
@@ -61,7 +61,7 @@ public class Seance {
         return startTime;
     }
 
-    public int getDayOfWeek() {
-        return dayOfWeek;
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 }

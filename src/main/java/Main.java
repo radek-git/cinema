@@ -373,7 +373,7 @@ public class Main {
         List<Seance> seances = cinema.getSeancesFor(LocalDate.now());
         Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
 
-        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDayOfWeek()));
+        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime()));
 
         Optional<Seance> optionalSeance = Optional.empty();
         while (!optionalSeance.isPresent()) {
@@ -392,7 +392,7 @@ public class Main {
 //            s = e.getKey();
 //            m = e.getValue();
 //
-//            System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDayOfWeek());
+//            System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime());
 //        }
 
         while (true) {
