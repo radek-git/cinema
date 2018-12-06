@@ -397,6 +397,7 @@ public class Main {
 
         while (true) {
             //wyswietl rodzaje biletow
+
             // uzytkownik podaje jaki ordzaj wybiera
             // sprawdzic czy ten rodzaj jest
             // jesli tak to pytanie o ilosc
@@ -409,27 +410,10 @@ public class Main {
         }
 
 
-        handleCinemaSchedule();
-
-
-        chooseMovie(sc.nextInt());
-
-        System.out.print("wybierz rodzajbiletu ");
-
-        int numberOfNrmalTickets = sc.nextInt();
-
-        System.out.print("Podaj ilość biletów ulgowych: ");
-
-        int numberofStudentTickets = sc.nextInt();
-
-
-
 
     }
 
-    private static void chooseMovie(int nextInt) {
 
-    }
 
 
 }

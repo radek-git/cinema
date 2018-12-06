@@ -9,8 +9,6 @@ import org.json.simple.parser.ParseException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -566,7 +564,7 @@ public class Database {
         return movie;
     }
 
-    public List<Seance> getSeancesFor(LocalDate date) throws SQLException {
+    public List<Seance> getSeancesFor(LocalDateTime date) throws SQLException {   // LocalDate zmieniona na LocalDateTime
         List<Seance> seances = new ArrayList<>();
 
         sql = "select * from seances where CAST(datetime as DATE) = ?";
@@ -579,8 +577,8 @@ public class Database {
             seances.add(new Seance(
                     rs.getInt("ID_SEANCE"),
                     rs.getInt("ID_MOVIE"),
-                    DayOfWeek.MONDAY.getValue(),
-                    "2a",
+                    date,
+                    rs.getInt("ID_ROOM"),
                     rs.getString("DATETIME")
             ));
         }
