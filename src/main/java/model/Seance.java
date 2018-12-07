@@ -8,19 +8,19 @@ public class Seance {
     private int movieId;
     private LocalDateTime dateTime;
     private int roomId;
-    private String startTime;
 
-    public Seance(int seanceId, int movieId, LocalDateTime dateTime, int roomId, String startTime) {
-        this(movieId, dateTime, roomId, startTime);
+
+    public Seance(int seanceId, int movieId, LocalDateTime dateTime, int roomId) {
+        this(movieId, dateTime, roomId);
 
         this.seanceId = seanceId;
     }
 
-    public Seance(int movieId, LocalDateTime dateTime, int roomId, String startTime) {
+    public Seance(int movieId, LocalDateTime dateTime, int roomId) {
         this.movieId = movieId;
-        this.dateTime = getDateTime();
+        this.dateTime = dateTime;
         this.roomId = roomId;
-        this.startTime = startTime;
+
     }
 
 //     public JSONObject toJSON() {
@@ -55,10 +55,6 @@ public class Seance {
 
     public int getRoomId() {
         return roomId;
-    }
-
-    public String getStartTime() {
-        return startTime;
     }
 
     public LocalDateTime getDateTime() {

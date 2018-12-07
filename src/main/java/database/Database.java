@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +146,7 @@ public class Database {
 
             rs = ps.executeQuery();
             if (rs.next()) {
-                int employeeId = rs.getInt("ID_USER");
+                int employeeId = rs.getInt("ID_EMPLOYEE");
                 employee = new Employee(employeeId, username, password);
             }
 
@@ -564,7 +565,7 @@ public class Database {
         return movie;
     }
 
-    public List<Seance> getSeancesFor(LocalDateTime date) throws SQLException {   // LocalDate zmieniona na LocalDateTime
+    public List<Seance> getSeancesFor(LocalDate date) throws SQLException {   // LocalDate zmieniona na LocalDateTime
         List<Seance> seances = new ArrayList<>();
 
         sql = "select * from seances where CAST(datetime as DATE) = ?";
@@ -577,13 +578,64 @@ public class Database {
             seances.add(new Seance(
                     rs.getInt("ID_SEANCE"),
                     rs.getInt("ID_MOVIE"),
-                    date,
-                    rs.getInt("ID_ROOM"),
-                    rs.getString("DATETIME")
+                    LocalDateTime.parse(rs.getString("DATETIME")),
+                    rs.getInt("ID_ROOM")
             ));
         }
 
         return seances;
     }
 
+    public List<Room> getRooms()  {
+        List<Room> rooms = new ArrayList<>();
+
+        try {
+            sql = "select * from rooms";
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                rooms.add(new Room(
+                        rs.getInt("ID_ROOM"),
+                        rs.getString("NAME"),
+                        rs.getInt("SEATS")
+                ));
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+
+        return rooms;
+    }
+
+
+    public List<TicketType> getTicketTypes() {
+        List<TicketType> ticketTypes = new ArrayList<>();
+
+        sql = "select * from ticket_types";
+
+        try {
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ticketTypes.add(new TicketType(
+                        rs.getInt("ID_TICKET_TYPE"),
+                        rs.getString("TICKET_TYPE"),
+                        rs.getInt("PRICE")
+                ));
+            }
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+
+        return ticketTypes;
+    }
 }

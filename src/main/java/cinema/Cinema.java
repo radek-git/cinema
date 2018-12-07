@@ -2,10 +2,7 @@ package cinema;
 
 import database.Database;
 import database.SQLErrorCode;
-import model.Employee;
-import model.Movie;
-import model.Seance;
-import model.User;
+import model.*;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -86,6 +83,21 @@ public class Cinema {
         }
 
         return null;
+    }
+
+
+    public void addSeance(Seance seance) {
+        database.addSeance(seance.getMovieId(), seance.getRoomId(), seance.getDateTime());
+
+    }
+
+    public List<Room> getRooms() {
+        return database.getRooms();
+
+    }
+
+    public List<TicketType> getTicketTypes() {
+        return database.getTicketTypes();
     }
 
 

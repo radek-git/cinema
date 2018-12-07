@@ -3,6 +3,9 @@ import cinema.CinemaException;
 import model.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -20,23 +23,15 @@ public class Main {
     private static Cinema cinema = new Cinema();
     private static Account currentUser;
 
+
     public static void main(String[] args) {
-
-//        try {
-//            database.registerUser("username1", "pass1");
-//        } catch (CinemaException e) {
-//            System.out.println(e.getMessage());
-//        }
-
-        //System.out.println(database.login("username1", "pass1"));
-
 //        while (true) {
 //            fakeClearScreen();
 //            printASCIIArt();
 //            handleMenu();
 //        }
 
-        buyTicket();
+
 
     }
 
@@ -206,7 +201,7 @@ public class Main {
                 break;
 
             case 2:
-                //handleAddNewSeance();
+                handleAddNewSeance();
                 break;
 
             case 3:
@@ -219,34 +214,45 @@ public class Main {
     }
 
     private static void handleAddNewSeance() {
-        List<Movie> movieList = cinema.getMovieList();
-
+        List<Movie> movies = cinema.getMovieList();
         Optional<Movie> optionalMovie = Optional.empty();
         while (!optionalMovie.isPresent()) {
-            movieList.forEach(movie -> System.out.println(movie.getId() + " " + movie.getTitle()));
+            movies.forEach(movie -> System.out.println(movie.getId() + " " + movie.getTitle()));
 
             System.out.println("Wybierz film: ");
             int movieId = sc.nextInt();
 
-            optionalMovie = movieList.stream().filter(movie -> movie.getId() == movieId).findFirst();
+            optionalMovie = movies.stream().filter(movie -> movie.getId() == movieId).findFirst();
         }
 
-        int dayOfWeek = -1;
-        while (dayOfWeek < database.DayOfWeek.MONDAY || dayOfWeek > database.DayOfWeek.SUNDAY) {
-            System.out.println("Podaj dzień tygodnia: ");
-            dayOfWeek = sc.nextInt();
+        List<Room> rooms = cinema.getRooms();
+        Optional<Room> optionalRoom = Optional.empty();
+        while (!optionalRoom.isPresent()) {
+            rooms.forEach(room -> System.out.println(room.getId()+" "+room.getName()));
+
+            System.out.println("Podaj nr sali: ");
+            int roomNr = sc.nextInt();
+
+            optionalRoom = rooms.stream().filter(room -> room.getId() == roomNr).findFirst();
         }
 
-        System.out.println("Podaj nr sali: ");
-        String roomNr = sc.next();
+        String datePattern = "dd.MM.yyyy";
+        System.out.println("Podaj datę: " + datePattern);
+        LocalDate date = LocalDate.parse(sc.next(), DateTimeFormatter.ofPattern(datePattern));
 
-        System.out.println("Podaj godzinę rozpoczęcia: ");
-        String startTime = sc.next();
+        String timePattern = "hh:mm";
+        System.out.println("Podaj godzinę rozpoczęcia : "+ timePattern);
+        LocalTime time = LocalTime.parse(sc.next(), DateTimeFormatter.ISO_LOCAL_TIME);
 
-        cinema.addSeance(new Seance(optionalMovie.get().getId(), dayOfWeek, roomNr, startTime));
+        LocalDateTime dateTime = LocalDateTime.of(date, time);
+
+        cinema.addSeance(new Seance(
+                optionalMovie.get().getId(),
+                dateTime,
+                optionalRoom.get().getId()
+        ));
 
         System.out.println("Dodano seans");
-
     }
 
     private static void handleAddNewMovie() {
@@ -266,8 +272,6 @@ public class Main {
                 break;
             }
         }
-
-
 
         List<Actor> actors = new ArrayList<>();
 
@@ -335,8 +339,6 @@ public class Main {
         }
     }
 
-
-
     private static void handleShowMovieByGenre() {
         System.out.println("1. Komedia.");
         System.out.println("2. Dramat.");
@@ -361,7 +363,51 @@ public class Main {
 
 
     private static void handleCinemaSchedule() {
-        System.out.print("Podaj dzien tygodnia (1-7): ");
+        System.out.print("1. Dziś");
+        System.out.print("2. Jutro");
+        System.out.print("3. Pojutrze");
+
+        List<Seance> seances = cinema.getSeancesFor(LocalDate.now().plusDays(1));
+        Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
+
+        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime()));
+
+        Optional<Seance> optionalSeance = Optional.empty();
+        while (!optionalSeance.isPresent()) {
+            System.out.print("Wybierz id seansu: ");
+
+            int seanceId = sc.nextInt();
+            optionalSeance = seances.stream().filter(s -> s.getSeanceId() == seanceId).findFirst();
+        }
+
+        List<TicketType> ticketTypes = cinema.getTicketTypes();
+
+        ticketTypes.forEach(ticketType -> System.out.println(new TicketType(ticketType.getTypeId(), ticketType.getType(), ticketType.getPrice())));
+
+        Optional<TicketType> optionalTicketType;
+        int ticketTypeNumber;
+        int amount;
+
+        while (true) {
+            optionalTicketType = Optional.empty();
+            while (!optionalTicketType.isPresent()) {
+                System.out.print("Podaj nr biletu: ");
+
+                ticketTypeNumber = sc.nextInt();
+                int finalTicketTypeNumber = ticketTypeNumber;
+                optionalTicketType = ticketTypes.stream().filter(tt -> tt.getTypeId() == finalTicketTypeNumber).findFirst();
+            }
+
+            System.out.println("Ile?");
+            amount = sc.nextInt();
+
+            // tworzy bilet
+
+
+
+            System.out.println("Czy chcesz kupic kolejny bilet? (t/n) ");
+            if (sc.next().charAt(0) == 'n') break;
+        }
 
     }
 
