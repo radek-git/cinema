@@ -29,5 +29,5 @@ public class TicketType {
         return price;
     }
 
-    
+
 }

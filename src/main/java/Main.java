@@ -31,7 +31,7 @@ public class Main {
 //            handleMenu();
 //        }
 
-
+        System.out.println(cinema.getTicketTypes());
 
     }
 
@@ -382,7 +382,7 @@ public class Main {
 
         List<TicketType> ticketTypes = cinema.getTicketTypes();
 
-        ticketTypes.forEach(ticketType -> System.out.println(new TicketType(ticketType.getTypeId(), ticketType.getType(), ticketType.getPrice())));
+        ticketTypes.forEach(ticketType -> System.out.println(ticketType.getTypeId() + " " + ticketType.getType() + " " + ticketType.getPrice()));
 
         Optional<TicketType> optionalTicketType;
         int ticketTypeNumber;
