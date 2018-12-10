@@ -638,4 +638,26 @@ public class Database {
 
         return ticketTypes;
     }
+
+
+    public boolean areSeancesColliding(Seance seance) {
+        sql = "select * from seances, movies where id_room = ? and not (? >= DATE_ADD(DATETIME, INTERVAL duration MINUTE) OR (? < DATETIME AND DATE_ADD(?, INTERVAL (select duration from movies where id_movie = ?) MINUTE) <= DATETIME))";
+
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, seance.getRoomId());
+            ps.setString(2, seance.getDateTime().toString());
+            ps.setString(3, seance.getDateTime().toString());
+            ps.setString(4, seance.getDateTime().toString());
+            ps.setInt(5, seance.getMovieId());
+            rs = ps.executeQuery();
+
+            return rs.next();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

@@ -86,9 +86,12 @@ public class Cinema {
     }
 
 
-    public void addSeance(Seance seance) {
-        database.addSeance(seance.getMovieId(), seance.getRoomId(), seance.getDateTime());
-
+    public void addSeance(Seance seance) throws CinemaException {
+        if (!database.areSeancesColliding(seance)) {
+            database.addSeance(seance.getMovieId(), seance.getRoomId(), seance.getDateTime());
+        } else {
+            throw new CinemaException("Seanse ze soba koliduja");
+        }
     }
 
     public List<Room> getRooms() {

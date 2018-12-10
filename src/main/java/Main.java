@@ -23,16 +23,12 @@ public class Main {
     private static Cinema cinema = new Cinema();
     private static Account currentUser;
 
-
     public static void main(String[] args) {
-//        while (true) {
-//            fakeClearScreen();
-//            printASCIIArt();
-//            handleMenu();
-//        }
-
-        System.out.println(cinema.getTicketTypes());
-
+        while (true) {
+            fakeClearScreen();
+            printASCIIArt();
+            handleMenu();
+        }
     }
 
     private static void fakeClearScreen() {
@@ -139,8 +135,12 @@ public class Main {
             System.out.println(e.getMessage());
         }
 
+        sleep(1);
+    }
+
+    private static void sleep(int seconds) {
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -246,13 +246,20 @@ public class Main {
 
         LocalDateTime dateTime = LocalDateTime.of(date, time);
 
-        cinema.addSeance(new Seance(
-                optionalMovie.get().getId(),
-                dateTime,
-                optionalRoom.get().getId()
-        ));
+        try {
+            cinema.addSeance(new Seance(
+                    optionalMovie.get().getId(),
+                    dateTime,
+                    optionalRoom.get().getId()
+            ));
 
-        System.out.println("Dodano seans");
+            System.out.println("Dodano seans");
+
+        } catch (CinemaException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sleep(2);
     }
 
     private static void handleAddNewMovie() {
@@ -381,21 +388,19 @@ public class Main {
         }
 
         List<TicketType> ticketTypes = cinema.getTicketTypes();
-
-        ticketTypes.forEach(ticketType -> System.out.println(ticketType.getTypeId() + " " + ticketType.getType() + " " + ticketType.getPrice()));
+        ticketTypes.forEach(ticketType -> System.out.println(ticketType.getTypeId() + " " + ticketType.getType() + " " + ticketType.getType()));
 
         Optional<TicketType> optionalTicketType;
-        int ticketTypeNumber;
         int amount;
 
+        // utworzyć mapę(typ biletu, int ilość biletów)
         while (true) {
             optionalTicketType = Optional.empty();
             while (!optionalTicketType.isPresent()) {
                 System.out.print("Podaj nr biletu: ");
 
-                ticketTypeNumber = sc.nextInt();
-                int finalTicketTypeNumber = ticketTypeNumber;
-                optionalTicketType = ticketTypes.stream().filter(tt -> tt.getTypeId() == finalTicketTypeNumber).findFirst();
+                int ticketTypeNumber = sc.nextInt();
+                optionalTicketType = ticketTypes.stream().filter(tt -> tt.getTypeId() == ticketTypeNumber).findFirst();
             }
 
             System.out.println("Ile?");
