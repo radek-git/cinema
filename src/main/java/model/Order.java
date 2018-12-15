@@ -26,8 +26,29 @@ public class Order {
         this.tickets = new ArrayList<>();
     }
 
-    public void addTickets(int ticketTypeId, int row, int seat) {
-        tickets.add(new Ticket(seanceId, ticketTypeId, row, seat));
+    public void addTicket(Ticket ticket) {
+        tickets.add(ticket);
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getSeanceId() {
+        return seanceId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public List<Ticket> getTickets() {
+        return tickets;
+    }
+
 
 }

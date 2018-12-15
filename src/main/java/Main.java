@@ -1,29 +1,33 @@
 import cinema.Cinema;
 import cinema.CinemaException;
 import model.*;
+import util.TimeUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-
-
     enum Menu {
-        MAIN, CLIENT, OWNER, USER
+        MAIN, CLIENT, EMPLOYEE, USER
     }
 
-    static Scanner sc = new Scanner(System.in);
-    static Menu menu = Menu.MAIN;
+    private static Scanner sc;
+    private static Menu menu;
 
-    private static Cinema cinema = new Cinema();
+    private static Cinema cinema;
     private static Account currentUser;
 
     public static void main(String[] args) {
+
+        sc = new Scanner(System.in);
+        menu = Menu.MAIN;
+        cinema = new Cinema();
+
+
         while (true) {
             fakeClearScreen();
             printASCIIArt();
@@ -46,23 +50,11 @@ public class Main {
 
     private static void handleMenu() {
         switch (menu) {
-            case MAIN:
-                handleMainMenu();
-                break;
-            case CLIENT:
-                handleClientMenu();
-                break;
-
-            case OWNER:
-                handleOwnerMenu();
-                break;
-
-            case USER:
-                handleUserMenu();
-                break;
-
-            default:
-                break;
+            case MAIN: handleMainMenu(); break;
+            case CLIENT: handleClientMenu(); break;
+            case EMPLOYEE: handleOwnerMenu(); break;
+            case USER: handleUserMenu(); break;
+            default: break;
         }
     }
 
@@ -72,20 +64,10 @@ public class Main {
         System.out.println("3. Zakoncz.");
 
         switch (sc.nextInt()) {
-            case 1:
-                menu = Menu.CLIENT;
-                break;
-
-            case 2:
-                handleLoginEmployee();
-                break;
-
-            case 3:
-                exit();
-                break;
-
-            default:
-                break;
+            case 1: menu = Menu.CLIENT; break;
+            case 2: handleLogin(Menu.EMPLOYEE); break;
+            case 3: exit(); break;
+            default: break;
         }
     }
 
@@ -96,98 +78,15 @@ public class Main {
         System.out.println("4. Wstecz.");
 
         switch (sc.nextInt()) {
-            case 1:
-                handleRegisterUser();
-                break;
-
-            case 2:
-                handleLoginUser(); // TODO: 11/8/2018 zrobic
-                break;
-
+            case 1: handleRegisterUser(); break;
+            case 2: handleLogin(Menu.USER); break;
             case 3:
-
+                // TODO: 13.12.2018 uzupełnić
                 break;
 
-            case 4:
-                menu = Menu.MAIN;
-                break;
-
-            default:
-                break;
+            case 4: menu = Menu.MAIN; break;
+            default: break;
         }
-    }
-
-    private static void handleRegisterUser() {
-        // TODO: 11/8/2018 sprawdzenie uzytkownika bez hasla
-        System.out.print("Podaj nowy login: ");
-        String username = sc.next();
-
-        System.out.print("Podaj nowe haslo: ");
-        String password = sc.next();
-
-        try {
-            currentUser = cinema.register(username, password);
-            System.out.println("Zarejestrowano pomyslnie.");
-
-            menu = Menu.USER;
-
-        } catch (CinemaException e) {
-            System.out.println(e.getMessage());
-        }
-
-        sleep(1);
-    }
-
-    private static void sleep(int seconds) {
-        try {
-            TimeUnit.SECONDS.sleep(seconds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void handleLoginUser() {
-        // TODO: 11/8/2018 zrobic
-        System.out.print("Podaj login: ");
-        String username = sc.next();
-
-        System.out.print("Podaj haslo: ");
-        String password = sc.next();
-
-        try {
-            currentUser = cinema.loginUser(username, password);
-            System.out.println("Zalogowano pomyslnie.");
-
-            menu = Menu.USER;
-
-        } catch (CinemaException e) {
-            System.out.println(e.getMessage());
-        }
-
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void handleLoginEmployee() {
-        System.out.print("Podaj login: ");
-        String username = sc.next();
-
-        System.out.print("Podaj haslo: ");
-        String password = sc.next();
-
-        try {
-            currentUser = cinema.loginEmployee(username, password);
-            System.out.println("Zalogowano pomyslnie.");
-
-            menu = Menu.OWNER;
-
-        } catch (CinemaException e) {
-            System.out.println(e.getMessage());
-        }
-
     }
 
     private static void handleOwnerMenu() {
@@ -196,20 +95,121 @@ public class Main {
         System.out.println("3. Wyloguj.");
 
         switch (sc.nextInt()) {
-            case 1:
-                handleAddNewMovie();
-                break;
+            case 1: handleAddNewMovie(); break;
+            case 2: handleAddNewSeance(); break;
+            case 3: logout(); break;
+            default: break;
+        }
+    }
 
-            case 2:
-                handleAddNewSeance();
-                break;
+    private static void handleUserMenu() {
+        System.out.println("1. Repertuar.");
+        System.out.println("2. Szukaj wg gatunku.");
+        System.out.println("3. Wyloguj.");
 
-            case 3:
-                logout();
-                break;
+        switch (sc.nextInt()) {
+            case 1: handleCinemaSchedule(); break;
+            case 2: handleShowMovieByGenre(); break;
+            case 3: logout(); break;
+            default: break;
+        }
+    }
 
-            default:
+    private static void handleLogin(Menu m) {
+        System.out.print("Podaj login: ");
+        String username = sc.next();
+
+        System.out.print("Podaj haslo: ");
+        String password = sc.next();
+
+        if (m == Menu.USER) {
+            cinema.loginUser(username, password);
+        } else {
+            currentUser = cinema.loginEmployee(username, password);
+        }
+
+        if (currentUser != null) {
+            System.out.println("Zalogowano pomyslnie.");
+            menu = Menu.USER;
+        } else {
+            System.out.println("Zle dane logowania");
+        }
+
+        TimeUtils.sleep(1);
+    }
+
+    private static void handleRegisterUser() {
+        System.out.print("Podaj nowy login: ");
+        String username = sc.next();
+
+        System.out.print("Podaj nowe haslo: ");
+        String password = sc.next();
+
+        currentUser = cinema.register(username, password);
+        if (currentUser != null) {
+            System.out.println("Zarejestrowano pomyslnie.");
+            menu = Menu.USER;
+        } else {
+            System.out.println("Uzytkownik juz istnieje");
+        }
+
+        TimeUtils.sleep(1);
+    }
+
+    private static void handleAddNewMovie() {
+        System.out.print("Podaj tytul: ");
+        String title = sc.next();
+
+        List<Director> directors = new ArrayList<>();
+        String[] directorData;
+        while (true) {
+            System.out.print("Podaj rezysera:");
+
+            directorData = sc.nextLine().split(" ");
+            directors.add(new Director(directorData[0], directorData[1]));
+
+            System.out.println("wincyj? (t/n)");
+            if (sc.next().charAt(0) == 'n') {
                 break;
+            }
+        }
+
+        List<Actor> actors = new ArrayList<>();
+        String[] actorData;
+
+        while (true) {
+            System.out.print("Podaj obsadę:");
+            actorData = sc.nextLine().split(" ");
+            actors.add(new Actor(actorData[0], actorData[1]));
+            System.out.println("wincyj? (t/n)");
+            if (sc.next().charAt(0) == 'n') {
+                break;
+            }
+        }
+
+        List<String> genres = new ArrayList<>();
+        System.out.print("Podaj gatunek: ");
+
+        while (true) {
+            System.out.print("Podaj gatunek:");
+            genres.add(sc.nextLine());
+            System.out.println("wincyj? (t/n)");
+            if (sc.next().charAt(0) == 'n') {
+                break;
+            }
+        }
+
+        System.out.print("Podaj opis: ");
+        String description = sc.next();
+
+        System.out.print("Podaj czas trwania filmu: ");
+        int duration = sc.nextInt();
+
+        Movie movie = new Movie(title, description, duration, directors, genres, actors);
+        try {
+            cinema.addMovie(movie);
+        } catch (CinemaException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -259,93 +259,106 @@ public class Main {
             System.out.println(e.getMessage());
         }
 
-        sleep(2);
+        TimeUtils.sleep(1);
     }
 
-    private static void handleAddNewMovie() {
-        System.out.print("Podaj tytul: ");
-        String title = sc.next();
 
-        List<Director> directors = new ArrayList<>();
-        String[] directorData;
-        while (true) {
-            System.out.print("Podaj rezysera:");
+    private static void handleCinemaSchedule() {
+        System.out.print("1. Dziś");
+        System.out.print("2. Jutro");
+        System.out.print("3. Pojutrze");
 
-            directorData = sc.nextLine().split(" ");
-            directors.add(new Director(directorData[0], directorData[1]));
+        int userChoice = sc.nextInt();
 
-            System.out.println("wincyj? (t/n)");
-            if (sc.next().charAt(0) == 'n') {
-                break;
+        List<Seance> seances = cinema.getSeancesFor(LocalDate.now().plusDays(userChoice-1));
+        Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
+
+        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime()));
+
+        Optional<Seance> optionalSeance = Optional.empty();
+        while (!optionalSeance.isPresent()) {
+            System.out.print("Wybierz id seansu: ");
+
+            int seanceId = sc.nextInt();
+            optionalSeance = seances.stream().filter(s -> s.getSeanceId() == seanceId).findFirst();
+        }
+
+        Order order = new Order(optionalSeance.get().getSeanceId(), currentUser.getId(), 0);// TODO: 14.12.2018
+
+        List<TicketType> ticketTypes = cinema.getTicketTypes();
+        ticketTypes.forEach(ticketType -> System.out.println(ticketType.getTypeId() + " " + ticketType.getType() + " " + ticketType.getPrice()));
+
+        Room room = cinema.getRoom(optionalSeance.get().getRoomId());
+        List<Seat> seatsTaken = cinema.getTakenSeatsForSeance(optionalSeance.get());
+
+        char[][] seats = new char[room.getRows()][room.getSeats()];
+        for (int i = 0; i < room.getRows(); i++) {
+            for (int j = 0; j < room.getSeats(); j++) {
+                seats[i][j] = ' ';
             }
         }
 
-        List<Actor> actors = new ArrayList<>();
+        for (Seat s : seatsTaken) {
+            seats[s.getRow()-1][s.getSeat()-1] = 'Z'; // -1 ponieważ indeksowanie w tablicy jest od 0
+        }
 
-        String[] actorData;
+        Optional<TicketType> optionalTicketType;
         while (true) {
-            System.out.print("Podaj obsadę:");
+            optionalTicketType = Optional.empty();
+            while (!optionalTicketType.isPresent()) {
+                System.out.print("Podaj nr biletu: ");
 
-            actorData = sc.nextLine().split(" ");
-            actors.add(new Actor(actorData[0], actorData[1]));
-
-            System.out.println("wincyj? (t/n)");
-            if (sc.next().charAt(0) == 'n') {
-                break;
+                int ticketTypeNumber = sc.nextInt();
+                optionalTicketType = ticketTypes.stream().filter(tt -> tt.getTypeId() == ticketTypeNumber).findFirst();
             }
-        }
 
-        List<String> genres = new ArrayList<>();
-        System.out.print("Podaj gatunek: ");
+            System.out.println("Wybierz miejsce:");
 
-        while (true) {
-            System.out.print("Podaj gatunek:");
-            genres.add(sc.nextLine());
-            System.out.println("wincyj? (t/n)");
-            if (sc.next().charAt(0) == 'n') {
-                break;
+
+            System.out.print("  ");
+            for (int i = 0; i < room.getSeats(); i++) {
+                System.out.print(i + 1 + "   ");
             }
+
+            System.out.println();
+
+            for (int i = 0; i < room.getRows(); i++) {
+                System.out.print(i+1 + " ");
+
+                for (int j = 0; j < room.getSeats(); j++) {
+                    System.out.print("[" + seats[i][j] + "] ");
+                }
+
+                System.out.println();
+            }
+
+            int row;
+            int seat;
+            while (true) {
+                System.out.print("Wybierz miejsce (rzad, miejsce): ");
+                row = sc.nextInt();
+                seat = sc.nextInt();
+
+                if (seats[row-1][seat-1] == 'Z') {
+                    System.out.println("Miejsce jest zajete");
+                } else {
+                    seats[row-1][seat-1] = 'Z';
+                    break;
+                }
+            }
+
+            TicketType ticketType = optionalTicketType.get();
+            order.addTicket(new Ticket(optionalSeance.get().getSeanceId(), ticketType.getTypeId(), row, seat));
+
+            System.out.println("Czy chcesz kupic kolejny bilet? (t/n) ");
+            if (sc.next().charAt(0) == 'n') break;
         }
 
-
-        System.out.print("Podaj opis: ");
-        String description = sc.next();
-
-        System.out.print("Podaj czas trwania filmu: ");
-        int duration = sc.nextInt();
-
-        Movie movie = new Movie(title, description, duration, directors, genres, actors);
-        try {
-            cinema.addMovie(movie);
-        } catch (CinemaException e) {
-            System.out.println(e.getMessage());
-        }
+        List<Ticket> tickets = cinema.makeOrder(order);
+        tickets.forEach(t -> System.out.println(t.toString()));
     }
 
-    private static void handleUserMenu() {
-        System.out.println("1. Repertuar.");
-        System.out.println("2. Szukaj wg gatunku.");
-        System.out.println("3. Wyloguj.");
-
-        switch (sc.nextInt()) {
-            case 1:
-                handleCinemaSchedule();
-                break;
-
-            case 2:
-                handleShowMovieByGenre();
-                break;
-
-            case 3:
-                logout();
-                break;
-
-
-            default:
-                break;
-        }
-    }
-
+    // TODO: 14.12.2018
     private static void handleShowMovieByGenre() {
         System.out.println("1. Komedia.");
         System.out.println("2. Dramat.");
@@ -356,7 +369,7 @@ public class Main {
     }
 
     private static void showMovies(int genre) {
-
+        List<Movie> movies = cinema.getMovieListByGenre(genre);
     }
 
     private static void logout() {
@@ -369,100 +382,16 @@ public class Main {
     }
 
 
-    private static void handleCinemaSchedule() {
-        System.out.print("1. Dziś");
-        System.out.print("2. Jutro");
-        System.out.print("3. Pojutrze");
-
-        List<Seance> seances = cinema.getSeancesFor(LocalDate.now().plusDays(1));
-        Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
-
-        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime()));
-
-        Optional<Seance> optionalSeance = Optional.empty();
-        while (!optionalSeance.isPresent()) {
-            System.out.print("Wybierz id seansu: ");
-
-            int seanceId = sc.nextInt();
-            optionalSeance = seances.stream().filter(s -> s.getSeanceId() == seanceId).findFirst();
-        }
-
-        List<TicketType> ticketTypes = cinema.getTicketTypes();
-        ticketTypes.forEach(ticketType -> System.out.println(ticketType.getTypeId() + " " + ticketType.getType() + " " + ticketType.getType()));
-
-        Optional<TicketType> optionalTicketType;
-        int amount;
-
-        // utworzyć mapę(typ biletu, int ilość biletów)
-        while (true) {
-            optionalTicketType = Optional.empty();
-            while (!optionalTicketType.isPresent()) {
-                System.out.print("Podaj nr biletu: ");
-
-                int ticketTypeNumber = sc.nextInt();
-                optionalTicketType = ticketTypes.stream().filter(tt -> tt.getTypeId() == ticketTypeNumber).findFirst();
-            }
-
-            System.out.println("Ile?");
-            amount = sc.nextInt();
-
-            // tworzy bilet
-
-
-
-            System.out.println("Czy chcesz kupic kolejny bilet? (t/n) ");
-            if (sc.next().charAt(0) == 'n') break;
-        }
-
-    }
-
-
-    private static void buyTicket() {
-        System.out.print("Podaj dzien tygodnia (1-7): ");
-        int dayOfWeek = sc.nextInt();
-
-        List<Seance> seances = cinema.getSeancesFor(LocalDate.now());
-        Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
-
-        map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime()));
-
-        Optional<Seance> optionalSeance = Optional.empty();
-        while (!optionalSeance.isPresent()) {
-            System.out.print("Wybierz id seansu: ");
-
-            int seanceId = sc.nextInt();
-            optionalSeance = seances.stream().filter(s -> s.getSeanceId() == seanceId).findFirst();
-        }
 
 
 
 
-//        Seance s;
-//        Movie m;
-//        for (Map.Entry<Seance, Movie> e : map.entrySet()) {
-//            s = e.getKey();
-//            m = e.getValue();
-//
-//            System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime());
-//        }
-
-        while (true) {
-            //wyswietl rodzaje biletow
-
-            // uzytkownik podaje jaki ordzaj wybiera
-            // sprawdzic czy ten rodzaj jest
-            // jesli tak to pytanie o ilosc
-            // dodajemy do klasy order te bilety
-
-            System.out.println("Czy chcesz kupic kolejny bilet? (t/n) ");
-            if (sc.next().charAt(0) == 'n') break;
-
-            //podsumowanie zamowienia
-        }
 
 
 
-    }
+
+
+
 
 
 

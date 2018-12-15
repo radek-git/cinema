@@ -12,9 +12,6 @@ import java.util.Map;
 
 public class Cinema {
 
-    // JSON MODEL
-    // http://www.objgen.com/json/models/v4Ubp
-
     private Database database;
 
     public Cinema() {
@@ -22,29 +19,26 @@ public class Cinema {
 
     }
 
-    public User register(String username, String password) throws CinemaException {
+    public User register(String username, String password) {
         User user = null;
 
         try {
             user =  database.registerUser(username, password);
         } catch (SQLException e) {
             if (e.getErrorCode() == SQLErrorCode.DUPLICATE_ENTRY) {
-                throw new CinemaException("Uzytkownik jest juz w bazie");
+
             } else {
                 e.printStackTrace();
             }
         }
-
         return user;
     }
 
-    public User loginUser(String username, String password) throws CinemaException {
-
+    public User loginUser(String username, String password) {
         return database.loginUser(username, password);
     }
 
-    public Employee loginEmployee(String username, String password) throws CinemaException {
-
+    public Employee loginEmployee(String username, String password) {
         return database.loginEmployee(username, password);
     }
 
@@ -71,7 +65,6 @@ public class Cinema {
                 e.printStackTrace();
             }
         });
-
         return map;
     }
 
@@ -81,10 +74,8 @@ public class Cinema {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null;
     }
-
 
     public void addSeance(Seance seance) throws CinemaException {
         if (!database.areSeancesColliding(seance)) {
@@ -96,17 +87,26 @@ public class Cinema {
 
     public List<Room> getRooms() {
         return database.getRooms();
-
     }
 
     public List<TicketType> getTicketTypes() {
         return database.getTicketTypes();
     }
 
+    public List<Ticket> makeOrder(Order order) {
+        return database.makeOrder(order);
+    }
 
-    //todo kupno biletu bez logowania
-    //todo kupno biletu po zalogowaniu
-    //todo stworzyć nowy plik który będzie przetrzymywał historię zakupów biletów
-    // todo dodawanie nowego pracownika przez właściciela
-    // todo usuwanie seansów przez właściciela
+    public List<Seat> getTakenSeatsForSeance(Seance seance) {
+        return database.getTakenSeatsForSeance(seance);
+    }
+
+    public List<Movie> getMovieListByGenre(int genre) {
+        return database.getMovieListByGenre(genre);
+    }
+
+    public Room getRoom(int roomId) {
+        return database.getRoom(roomId);
+    }
+
 }

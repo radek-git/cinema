@@ -23,28 +23,6 @@ public class Seance {
 
     }
 
-//     public JSONObject toJSON() {
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("seanceId", seanceId);
-//        jsonObject.put("movieId", movieId);
-//        jsonObject.put("roomId", roomId);
-//        jsonObject.put("startTime", startTime);
-//        jsonObject.put("tickets", 100);
-//
-//        return jsonObject;
-//    }
-//
-//    public static Seance fromJSON(JSONObject jsonObject, int dayOfWeek) {
-//        return new Seance(
-//                ((Long) jsonObject.get("seanceId")).intValue(),
-//                ((Long)jsonObject.get("movieId")).intValue(),
-//                dayOfWeek,
-//                (String)jsonObject.get("roomId"),
-//                (String)jsonObject.get("startTime")
-//        );
-//    }
-
-
     public int getSeanceId() {
         return seanceId;
     }

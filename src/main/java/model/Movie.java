@@ -78,28 +78,5 @@ public class Movie {
         this.actors = actors;
     }
 
-    //    public static Movie fromJSON(JSONObject movieJSONObject) {
-//        JSONArray starringJSONArray = (JSONArray) movieJSONObject.get("actors");
-//
-//        List<Actor> starring = new ArrayList<>();
-//        JSONObject actor;
-//        for (int i = 0; i < starringJSONArray.size(); i++) {
-//            actor = (JSONObject) starringJSONArray.get(i);
-//            starring.add(new Actor((String) actor.get("name"), (String) actor.get("surname")));
-//        }
-//
-//        return new Movie(
-//                ((Long) movieJSONObject.get("id")).intValue(),
-//                (String) movieJSONObject.get("title"),
-//                (String) movieJSONObject.get("description"),
-//                (String) movieJSONObject.get("director"),
-//                ((Long)movieJSONObject.get("duration")).intValue(),
-//                (String) movieJSONObject.get("genres"),
-//                starring
-//
-//        );
-//    }
-
-
     
 }

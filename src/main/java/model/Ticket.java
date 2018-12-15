@@ -21,4 +21,36 @@ public class Ticket {
         this.row = row;
         this.seat = seat;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getTicketTypeId() {
+        return ticketTypeId;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public int getSeat() {
+        return seat;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Ticket{" +
+                "id=" + id +
+                ", seanceId=" + seanceId +
+                ", ticketTypeId=" + ticketTypeId +
+                ", row=" + row +
+                ", seat=" + seat +
+                '}';
+    }
 }

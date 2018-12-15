@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class Database {
         try {
             Class.forName(JDBC_DRIVER);
 
+            // TODO: 14.12.2018 jednolinijkowiec
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(new FileReader("database.json"));
             JSONObject jsonObject = (JSONObject) obj;
@@ -184,11 +186,7 @@ public class Database {
             }
 
         } catch (SQLException e) {
-            try {
-                con.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+            rollback();
 
             if (e.getErrorCode() == 1644) {
                 throw new CinemaException(e.getMessage());
@@ -574,11 +572,13 @@ public class Database {
         ps.setString(1, date.toString());
         rs = ps.executeQuery();
 
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         while (rs.next()) {
             seances.add(new Seance(
                     rs.getInt("ID_SEANCE"),
                     rs.getInt("ID_MOVIE"),
-                    LocalDateTime.parse(rs.getString("DATETIME")),
+                    LocalDateTime.parse(rs.getString("DATETIME"), format),
                     rs.getInt("ID_ROOM")
             ));
         }
@@ -598,7 +598,8 @@ public class Database {
                 rooms.add(new Room(
                         rs.getInt("ID_ROOM"),
                         rs.getString("NAME"),
-                        rs.getInt("SEATS")
+                        rs.getInt("ROWS"),
+                        rs.getInt("SEATS_IN_ROW")
                 ));
 
             }
@@ -656,8 +657,162 @@ public class Database {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        }finally {
+            close();
         }
 
         return false;
+    }
+
+    public List<Ticket> makeOrder(Order order) {
+        sql = "INSERT INTO `orders` (`ID_ORDER`, `ID_SEANCE`, `ID_USER`, `ID_EMPLOYEE`) VALUES (NULL, ?, ?, ?)";
+
+        List<Ticket> tickets = new ArrayList<>();
+
+        try {
+            con.setAutoCommit(false);
+            ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, order.getSeanceId());
+            ps.setInt(2, order.getUserId());
+            ps.setInt(3, 1);
+            ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                int orderId = rs.getInt(1);
+
+                for (Ticket t : order.getTickets()) {
+                    sql = "INSERT INTO `tickets` (`ID_TICKET`, `ID_SEANCE`, `ID_TICKET_TYPE`, `ROW`, `SEAT`) VALUES (NULL, ?, ?, ?, ?)";
+
+                    ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    ps.setInt(1, order.getSeanceId());
+                    ps.setInt(2, t.getTicketTypeId());
+                    ps.setInt(3, t.getRow());
+                    ps.setInt(4, t.getSeat());
+                    ps.executeUpdate();
+
+                    rs = ps.getGeneratedKeys();
+
+                    if (rs.next()) {
+                        int ticketId = rs.getInt(1);
+
+                        sql = "INSERT INTO `order_tickets` (`ID_ORDER`, `ID_TICKET`) VALUES (?, ?)";
+
+                        ps = con.prepareStatement(sql);
+                        ps.setInt(1, orderId);
+                        ps.setInt(2, ticketId);
+                        ps.executeUpdate();
+
+                        t.setId(ticketId);
+                        tickets.add(t);
+                    } else {
+                        System.out.println("blad");
+                        con.rollback();
+                    }
+                }
+
+                con.commit();
+
+            } else {
+                System.out.println("blad");
+                con.rollback();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            rollback();
+
+        } finally {
+            close();
+        }
+
+        return tickets;
+    }
+
+    private void rollback() {
+        try {
+            if (con != null) con.rollback();
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+    private void addTickets(int seanceId, TicketType ticketType, int amount) throws SQLException {
+        sql = "INSERT INTO `tickets` (`ID_TICKET`, `ID_SEANCE`, `ID_TICKET_TYPE`, `ROW`, `SEAT`) VALUES (NULL, ?, ?, ?, ?)";
+
+        ps = con.prepareStatement(sql);
+    }
+
+
+    public List<Movie> getMovieListByGenre(int genre) {
+        sql = "select m.title from movies as m, movie_genres as mg, genres as g where mg.ID_MOVIE = m.ID_MOVIE and mg.ID_GENRE=?";
+        List<Movie> movies = new ArrayList<>();
+
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, genre);
+            rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    movies.add(new Movie(
+                            rs.getInt("ID_MOVIE"),
+                            rs.getString("TITLE"),
+                            rs.getString("DESCRIPTION"),
+                            rs.getInt("DURATION"))
+                    );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return movies;
+    }
+
+    public List<Seat> getTakenSeatsForSeance(Seance seance) {
+        List<Seat> seats = new ArrayList<>();
+        sql = "select row, seat from tickets where id_seance=?";
+
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, seance.getSeanceId());
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                seats.add(new Seat(
+                        rs.getInt("row"),
+                        rs.getInt("seat")
+
+                ));
+            }
+
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            close();
+        }
+        return seats;
+    }
+
+    public Room getRoom(int roomId) {
+        sql = "select * from rooms where id_room=?";
+        Room room = null;
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, roomId);
+
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                room = new Room(roomId, rs.getString("name"), rs.getInt("rows"),
+                        rs.getInt("seats_in_row"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            close();
+        }
+
+        return room;
     }
 }
