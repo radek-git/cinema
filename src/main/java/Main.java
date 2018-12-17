@@ -16,6 +16,8 @@ public class Main {
     }
 
     private static Scanner sc;
+    private static String input;
+
     private static Menu menu;
 
     private static Cinema cinema;
@@ -63,54 +65,62 @@ public class Main {
         System.out.println("2. Jestem Wlascicielem.");
         System.out.println("3. Zakoncz.");
 
-        switch (sc.nextInt()) {
-            case 1: menu = Menu.CLIENT; break;
-            case 2: handleLogin(Menu.EMPLOYEE); break;
-            case 3: exit(); break;
-            default: break;
+        input = sc.next();
+        if (isInteger(input)) {
+            switch (Integer.parseInt(input)) {
+                case 1: menu = Menu.CLIENT; break;
+                case 2: handleLogin(Menu.EMPLOYEE); break;
+                case 3: exit(); break;
+                default: break;
+            }
         }
+    }
+
+    private static boolean isInteger(String s) {
+        try {
+            Integer.parseInt(s);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
     }
 
     private static void handleClientMenu() {
         System.out.println("1. Zarejestruj sie.");
         System.out.println("2. Zaloguj sie.");
-        System.out.println("3. Kup bilet na miejscu.");
-        System.out.println("4. Wstecz.");
+        System.out.println("3. Wstecz.");
 
         switch (sc.nextInt()) {
             case 1: handleRegisterUser(); break;
             case 2: handleLogin(Menu.USER); break;
-            case 3:
-                // TODO: 13.12.2018 uzupełnić
-                break;
-
-            case 4: menu = Menu.MAIN; break;
+            case 3: menu = Menu.MAIN; break;
             default: break;
         }
     }
 
     private static void handleOwnerMenu() {
-        System.out.println("1. Dodaj nowy film.");
-        System.out.println("2. Dodaj nowy seans.");
-        System.out.println("3. Wyloguj.");
+        System.out.println("1. Zamowienie na miejscu.");
+        System.out.println("2. Dodaj nowy film.");
+        System.out.println("3. Dodaj nowy seans.");
+        System.out.println("4. Wyloguj.");
 
         switch (sc.nextInt()) {
-            case 1: handleAddNewMovie(); break;
-            case 2: handleAddNewSeance(); break;
-            case 3: logout(); break;
+            case 1: handleBuyTickets(0, currentUser.getId()); break;
+            case 2: handleAddNewMovie(); break;
+            case 3: handleAddNewSeance(); break;
+            case 4: logout(); break;
             default: break;
         }
     }
 
     private static void handleUserMenu() {
         System.out.println("1. Repertuar.");
-        System.out.println("2. Szukaj wg gatunku.");
-        System.out.println("3. Wyloguj.");
+        System.out.println("2. Wyloguj.");
 
         switch (sc.nextInt()) {
-            case 1: handleCinemaSchedule(); break;
-            case 2: handleShowMovieByGenre(); break;
-            case 3: logout(); break;
+            case 1: handleBuyTickets(currentUser.getId(), 0); break;
+            case 2: logout(); break;
             default: break;
         }
     }
@@ -120,17 +130,18 @@ public class Main {
         String username = sc.next();
 
         System.out.print("Podaj haslo: ");
-        String password = sc.next();
+        input = sc.next();
 
         if (m == Menu.USER) {
-            cinema.loginUser(username, password);
+            currentUser = cinema.loginUser(username, input);
         } else {
-            currentUser = cinema.loginEmployee(username, password);
+            currentUser = cinema.loginEmployee(username, input);
+
         }
 
         if (currentUser != null) {
             System.out.println("Zalogowano pomyslnie.");
-            menu = Menu.USER;
+            menu = m;
         } else {
             System.out.println("Zle dane logowania");
         }
@@ -158,7 +169,7 @@ public class Main {
 
     private static void handleAddNewMovie() {
         System.out.print("Podaj tytul: ");
-        String title = sc.next();
+        input = sc.next();
 
         List<Director> directors = new ArrayList<>();
         String[] directorData;
@@ -205,7 +216,7 @@ public class Main {
         System.out.print("Podaj czas trwania filmu: ");
         int duration = sc.nextInt();
 
-        Movie movie = new Movie(title, description, duration, directors, genres, actors);
+        Movie movie = new Movie(input, description, duration, directors, genres, actors);
         try {
             cinema.addMovie(movie);
         } catch (CinemaException e) {
@@ -263,16 +274,19 @@ public class Main {
     }
 
 
-    private static void handleCinemaSchedule() {
+    private static void handleBuyTickets(int userId, int employeeId) {
         System.out.print("1. Dziś");
         System.out.print("2. Jutro");
         System.out.print("3. Pojutrze");
 
-        int userChoice = sc.nextInt();
+        List<Seance> seances = cinema.getSeancesFor(LocalDate.now().plusDays(sc.nextInt() - 1));
+        if (seances.isEmpty()) {
+            System.out.println("Nie ma seansów na dany dzień!");
+            TimeUtils.sleep(1);
+            return;
+        }
 
-        List<Seance> seances = cinema.getSeancesFor(LocalDate.now().plusDays(userChoice-1));
         Map<Seance, Movie> map = cinema.getMovieDataForSeances(seances);
-
         map.forEach((s, m) -> System.out.println(s.getSeanceId() + " " + m.getTitle() + " " + s.getDateTime()));
 
         Optional<Seance> optionalSeance = Optional.empty();
@@ -283,7 +297,7 @@ public class Main {
             optionalSeance = seances.stream().filter(s -> s.getSeanceId() == seanceId).findFirst();
         }
 
-        Order order = new Order(optionalSeance.get().getSeanceId(), currentUser.getId(), 0);// TODO: 14.12.2018
+        Order order = new Order(optionalSeance.get().getSeanceId(), userId, employeeId);// TODO: 14.12.2018
 
         List<TicketType> ticketTypes = cinema.getTicketTypes();
         ticketTypes.forEach(ticketType -> System.out.println(ticketType.getTypeId() + " " + ticketType.getType() + " " + ticketType.getPrice()));
@@ -357,21 +371,6 @@ public class Main {
         List<Ticket> tickets = cinema.makeOrder(order);
         tickets.forEach(t -> System.out.println(t.toString()));
     }
-
-    // TODO: 14.12.2018
-    private static void handleShowMovieByGenre() {
-        System.out.println("1. Komedia.");
-        System.out.println("2. Dramat.");
-        System.out.println("3. Horror.");
-        System.out.println("4. Thriller");
-
-        showMovies(sc.nextInt());
-    }
-
-    private static void showMovies(int genre) {
-        List<Movie> movies = cinema.getMovieListByGenre(genre);
-    }
-
     private static void logout() {
         currentUser = null;
         menu = Menu.MAIN;

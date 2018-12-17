@@ -673,8 +673,19 @@ public class Database {
             con.setAutoCommit(false);
             ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, order.getSeanceId());
-            ps.setInt(2, order.getUserId());
-            ps.setInt(3, 1);
+
+            if (order.getUserId() == 0) {
+                ps.setNull(2, Types.INTEGER);
+            } else {
+                ps.setInt(2, order.getUserId());
+            }
+
+            if (order.getEmployeeId() == 0) {
+                ps.setNull(3, Types.INTEGER);
+            } else {
+                ps.setInt(3, order.getEmployeeId());
+            }
+
             ps.executeUpdate();
 
             rs = ps.getGeneratedKeys();

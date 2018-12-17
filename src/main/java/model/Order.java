@@ -50,5 +50,7 @@ public class Order {
         return tickets;
     }
 
-
+    public int getEmployeeId() {
+        return employeeId;
+    }
 }
